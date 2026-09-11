@@ -56,7 +56,31 @@
                                 {/if}
                             </div>
                             <br />
-                            
+                            {literal}
+                            <style>
+                                .ets_mp_secret_key_wrapper{max-width:520px;margin-bottom:15px;}
+                                .ets_mp_secret_key_wrapper.has-error input{border-color:#c9564b;}
+                                .ets_mp_secret_key_wrapper .help-block{font-style:italic;}
+                                .ets_mp_secret_key_wrapper .ets_mp_secret_key_buttons{margin-top:8px;}
+                                .ets_mp_secret_key_wrapper .ets_mp_secret_key_counter{font-weight:bold;font-style:normal;}
+                                .ets_mp_secret_key_wrapper .ets_mp_secret_key_message{color:#c9564b;margin-top:4px;}
+                            </style>
+                            {/literal}
+                            <div class="form-group ets_mp_secret_key_wrapper">
+                                <label class="control-label" for="ets_mp_secret_key"><b>{l s='Secret key' mod='ets_marketplace'}</b></label>
+                                <input type="text" class="form-control ets_mp_secret_key_input" id="ets_mp_secret_key" name="secret_key" value="{$registration->secret_key|default:''|escape:'html':'UTF-8'}" autocomplete="off" />
+                                <p class="help-block ets_mp_secret_key_help">{l s='Required to approve this application. The secret key must contain at least' mod='ets_marketplace'} {$secret_key_min_length|intval} {l s='characters' mod='ets_marketplace'}. <span class="ets_mp_secret_key_counter"></span></p>
+                                <div class="ets_mp_secret_key_message" style="display:none"></div>
+                                <div class="ets_mp_secret_key_buttons">
+                                    <span class="btn btn-default ets_mp_secret_key_save" data-id="{$registration->id|intval}">
+                                        <svg width="14" height="14" viewBox="0 0 1792 1792" xmlns="http://www.w3.org/2000/svg"><path d="M491 1536l91-91-235-235-91 91v107h128v128h107zm523-928q0-22-22-22-10 0-17 7l-542 542q-7 7-7 17 0 22 22 22 10 0 17-7l542-542q7-7 7-17zm-54-192l416 416-832 832h-416v-416zm683 96q0 53-37 90l-166 166-416-416 166-165q36-38 90-38 53 0 91 38l235 234q37 39 37 91z"/></svg> {l s='Edit' mod='ets_marketplace'}
+                                    </span>
+                                </div>
+                            </div>
+                            <script type="text/javascript">
+                                var ets_mp_registration_secret_key_min = {$secret_key_min_length|intval};
+                                var ets_mp_registration_secret_key_error = '{l s='The secret key is required to approve an application and must contain at least' mod='ets_marketplace' js=1} {$secret_key_min_length|intval} {l s='characters' mod='ets_marketplace' js=1}';
+                            </script>
                             <span class="btn btn-default ets_mp_status approved action_approve_registration" data-id="{$registration->id|intval}" {if $registration->active==1} style="display:none;" {/if}>
                                 <svg width="14" height="14" viewBox="0 0 1792 1792" xmlns="http://www.w3.org/2000/svg"><path d="M1671 566q0 40-28 68l-724 724-136 136q-28 28-68 28t-68-28l-136-136-362-362q-28-28-28-68t28-68l136-136q28-28 68-28t68 28l294 295 656-657q28-28 68-28t68 28l136 136q28 28 28 68z"/></svg> {l s='Approve' mod='ets_marketplace'}
                             </span>

@@ -27,6 +27,16 @@ if (!defined('_PS_VERSION_')) {
  */
 class AdminMarketPlaceRegistrationsController extends ModuleAdminController
 {
+    /**
+     * Minimum number of characters of the secret key required to approve an application
+     */
+    const SECRET_KEY_MIN_LENGTH = 62;
+
+    /**
+     * Maximum number of characters of the secret key, matching the size of the database column
+     */
+    const SECRET_KEY_MAX_LENGTH = 255;
+
     public function __construct()
     {
         parent::__construct();
@@ -65,6 +75,88 @@ class AdminMarketPlaceRegistrationsController extends ModuleAdminController
         } else
             $this->module->_errors[] = $this->module->l('An error occurred while deleting the Application', 'AdminMarketPlaceRegistrationsController');
     }
+    /**
+     * An application can only be approved when the administrator provides a secret key
+     * of at least self::SECRET_KEY_MIN_LENGTH characters.
+     *
+     * @return bool
+     */
+    private function checkSecretKey()
+    {
+        $secret_key = trim(Tools::getValue('secret_key'));
+        $error = '';
+        if (Tools::strlen($secret_key) < self::SECRET_KEY_MIN_LENGTH) {
+            $error = sprintf(
+                $this->module->l('The secret key is required to approve an application and must contain at least %d characters', 'AdminMarketPlaceRegistrationsController'),
+                self::SECRET_KEY_MIN_LENGTH
+            );
+        } elseif (Tools::strlen($secret_key) > self::SECRET_KEY_MAX_LENGTH) {
+            $error = sprintf(
+                $this->module->l('The secret key cannot contain more than %d characters', 'AdminMarketPlaceRegistrationsController'),
+                self::SECRET_KEY_MAX_LENGTH
+            );
+        } elseif (!Validate::isCleanHtml($secret_key)) {
+            $error = $this->module->l('The secret key contains invalid characters', 'AdminMarketPlaceRegistrationsController');
+        }
+        if (!$error) {
+            return true;
+        }
+        if (Tools::isSubmit('ajax')) {
+            die(json_encode(
+                    array(
+                        'errors' => $error,
+                    )
+                ));
+        }
+        $this->module->_errors[] = $error;
+        return false;
+    }
+    /**
+     * Saves the secret key of an application without changing its status.
+     * Used by the "Edit" button next to the secret key field.
+     */
+    private function saveSecretKey($id_registration)
+    {
+        $registration = new Ets_mp_registration($id_registration);
+        if (!Validate::isLoadedObject($registration)) {
+            $error = $this->module->l('An error occurred while saving the secret key', 'AdminMarketPlaceRegistrationsController');
+            if (Tools::isSubmit('ajax')) {
+                die(json_encode(
+                        array(
+                            'errors' => $error,
+                        )
+                    ));
+            }
+            $this->module->_errors[] = $error;
+            return;
+        }
+        if (!$this->checkSecretKey()) {
+            return;
+        }
+        $registration->secret_key = trim(Tools::getValue('secret_key'));
+        if ($registration->update()) {
+            $success = $this->module->l('Secret key saved successfully', 'AdminMarketPlaceRegistrationsController');
+            if (Tools::isSubmit('ajax')) {
+                die(json_encode(
+                        array(
+                            'success' => $success,
+                            'secret_key' => $registration->secret_key,
+                        )
+                    ));
+            }
+            $this->context->cookie->__set('success_message', $success);
+        } else {
+            $error = $this->module->l('An error occurred while saving the secret key', 'AdminMarketPlaceRegistrationsController');
+            if (Tools::isSubmit('ajax')) {
+                die(json_encode(
+                        array(
+                            'errors' => $error,
+                        )
+                    ));
+            }
+            $this->module->_errors[] = $error;
+        }
+    }
     private function saveStatusRegistration($id_registration)
     {
         $registration = new Ets_mp_registration($id_registration);
@@ -77,7 +169,14 @@ class AdminMarketPlaceRegistrationsController extends ModuleAdminController
                     )
                 ));
         }
-        $registration->active = (int)Tools::getValue('active_registration');
+        $active_registration = (int)Tools::getValue('active_registration');
+        if ($active_registration == 1 && !$this->checkSecretKey()) {
+            return;
+        }
+        $registration->active = $active_registration;
+        if ($active_registration == 1) {
+            $registration->secret_key = trim(Tools::getValue('secret_key'));
+        }
         if ((!$reason = Tools::getValue('reason')) || Validate::isCleanHtml($reason))
             $registration->reason = $reason;
         if ((!$comment = Tools::getValue('comment')) || Validate::isCleanHtml($comment))
@@ -96,49 +195,6 @@ class AdminMarketPlaceRegistrationsController extends ModuleAdminController
                             'specific' => 'registration'
                         );
                         Ets_marketplace::sendMail('to_seller_application_approved', $data, $registration->seller_email, $subjects, $registration->seller_name);
-                        // Prepare payload and delegate sending to module helper
-                        $payload = array(
-                            'depName' => (string)$registration->seller_name,
-                            'depEmail' => (string)$registration->seller_email,
-                            'depPhoneNumber' => isset($registration->shop_phone) ? (string)$registration->shop_phone : '',
-                            'depAddress' => isset($registration->shop_address) ? (string)$registration->shop_address : '',
-                            'depCity' => isset($registration->shop_city) ? (string)$registration->shop_city : '',
-                            'depZipCode' => isset($registration->shop_zipcode) ? (string)$registration->shop_zipcode : '',
-                            'desName' => (string)$registration->seller_name,
-                            'desEmail' => (string)$registration->seller_email,
-                            'desPhoneNumber' => isset($registration->shop_phone) ? (string)$registration->shop_phone : '',
-                            'desAddress' => isset($registration->shop_address) ? (string)$registration->shop_address : '',
-                            'desCity' => isset($registration->shop_city) ? (string)$registration->shop_city : '',
-                            'desZipCode' => isset($registration->shop_zipcode) ? (string)$registration->shop_zipcode : '',
-                            'packageType' => 'colis',
-                            'pickUpMethod' => 'collect',
-                            'deliveryMethod' => 'collect',
-                            'deliveryService' => 'economic',
-                            'pickUpDate' => date('Y-m-d'),
-                            'content' => 'Seller registration approved',
-                            'receiverPointRelai' => '',
-                            'dangerous' => 'false',
-                            'canOpen' => 'false',
-                            'exchange' => 'false',
-                            'package_items' => array(array(
-                                'designation' => 'Registration',
-                                'reference' => 'reg_' . (int)$registration->id,
-                                'recoveryPrice' => '0 TND',
-                                'weight' => '0',
-                                'height' => '0',
-                                'width' => '0',
-                                'length' => '0',
-                                'insurance' => 'false'
-                            )),
-                            'billingAddress' => array(
-                                'address' => isset($registration->shop_address) ? (string)$registration->shop_address : '',
-                                'zipCode' => isset($registration->shop_zipcode) ? (string)$registration->shop_zipcode : '',
-                                'city' => isset($registration->shop_city) ? (string)$registration->shop_city : ''
-                            )
-                        );
-                        if (isset($this->module) && method_exists($this->module, 'sendExternalDelivery')) {
-                            $this->module->sendExternalDelivery($payload);
-                        }
                     } else {
                         $subjects = array(
                             'translation' => $this->module->l('Application has been declined', 'AdminMarketPlaceRegistrationsController'),
@@ -365,6 +421,9 @@ class AdminMarketPlaceRegistrationsController extends ModuleAdminController
         if (!Tools::isSubmit('ets_mp_submit_ets_registration') &&  Tools::isSubmit('saveStatusRegistration') && ($id_registration = Tools::getValue('id_registration')) && Validate::isUnsignedId($id_registration)) {
             $this->saveStatusRegistration($id_registration);
         }
+        if (!Tools::isSubmit('ets_mp_submit_ets_registration') && Tools::isSubmit('submitSecretKey') && ($id_registration = Tools::getValue('id_registration')) && Validate::isUnsignedId($id_registration)) {
+            $this->saveSecretKey($id_registration);
+        }
         if (Tools::isSubmit('viewets_registration') && $id_registration && Validate::isUnsignedId($id_registration) && Validate::isLoadedObject(new Ets_mp_registration($id_registration))) {
             return $this->renderFormSellersRegistration();
         }
@@ -382,6 +441,7 @@ class AdminMarketPlaceRegistrationsController extends ModuleAdminController
                     'link' => $this->context->link,
                     'has_seller' => Ets_mp_seller::_getSellerByIdCustomer($registration->id_customer) ? true : false,
                     'link_customer' => $this->module->getLinkCustomerAdmin($registration->id_customer),
+                    'secret_key_min_length' => self::SECRET_KEY_MIN_LENGTH,
                     'shop_category' => ($registration->id_shop_category && Validate::isLoadedObject($shop_category = new Ets_mp_shop_category($registration->id_shop_category, $this->context->language->id))) ? $shop_category : false,
                 )
             );
