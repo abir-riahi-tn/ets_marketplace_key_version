@@ -117,8 +117,8 @@ class Ets_marketplace extends PaymentModule
 
         $this->name = 'ets_marketplace';
 		$this->tab = 'front_office_features';
-		$this->version = '3.7.9';
-		$this->author = 'PrestaHero';
+		$this->version = '3.8.0';
+		$this->author = 'PrestaHero - version 3.7.9';
 		$this->need_instance = 0;
 		$this->bootstrap = true;
         if(version_compare(_PS_VERSION_, '1.7', '>='))
@@ -145,40 +145,6 @@ class Ets_marketplace extends PaymentModule
 
         $secret = Configuration::get('ETS_MP_ENABLE_CAPTCHA_TYPE')=='google_v2' ? Configuration::get('ETS_MP_ENABLE_CAPTCHA_SECRET_KEY2') : Configuration::get('ETS_MP_ENABLE_CAPTCHA_SECRET_KEY3');
         $this->link_capcha="https://www.google.com/recaptcha/api/siteverify?secret=" . $secret . "&response=" . $recaptcha . "&remoteip=" . Tools::getRemoteAddr();
-    }
-
-    /**
-     * Send payload to external delivery API and log response.
-     * @param array $payload
-     * @return array
-     */
-    public function sendExternalDelivery(array $payload)
-    {
-        $apiUrl = Configuration::get('ETS_MP_EXTERNAL_API_URL') ?: 'https://dev-api-login.mlinnovation.tn/api/v2/thirdparty/delivery/new';
-        $apiKey = Configuration::get('ETS_MP_EXTERNAL_API_KEY');
-        try {
-            $ch = curl_init($apiUrl);
-            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-            curl_setopt($ch, CURLOPT_POST, true);
-            $headers = array('Content-Type: application/json');
-            if ($apiKey) {
-                $headers[] = 'Authorization: Bearer ' . $apiKey;
-            }
-            curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
-            curl_setopt($ch, CURLOPT_POSTFIELDS, Tools::jsonEncode($payload));
-            curl_setopt($ch, CURLOPT_TIMEOUT, 10);
-            $resp = curl_exec($ch);
-            $errno = curl_errno($ch);
-            $error = curl_error($ch);
-            $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-            curl_close($ch);
-            $logMessage = Tools::displayDate(date('Y-m-d H:i:s'), true) . ': External API POST to ' . $apiUrl . ' returned HTTP ' . $httpCode . ' resp: ' . print_r($resp, true) . "\n";
-            file_put_contents(_PS_ETS_MARKETPLACE_LOG_DIR_ . 'ets_external_api.log', $logMessage, FILE_APPEND);
-            return array('http_code' => $httpCode, 'response' => $resp, 'errno' => $errno, 'error' => $error);
-        } catch (Exception $e) {
-            file_put_contents(_PS_ETS_MARKETPLACE_LOG_DIR_ . 'ets_external_api.log', Tools::displayDate(date('Y-m-d H:i:s'), true) . ': External API error: ' . $e->getMessage() . "\n", FILE_APPEND);
-            return array('error' => $e->getMessage());
-        }
     }
     public function _registerHooks()
     {
@@ -1475,6 +1441,7 @@ class Ets_marketplace extends PaymentModule
             'ets_mp_sidebar' => $this->renderSidebar($control),
             'control' => $control,
             'ets_mp_module_dir' => $this->_path,
+            'ets_mp_module_version' => $this->version . '.' . (int)@filemtime(_PS_MODULE_DIR_ . $this->name . '/views/js/admin.js'),
         ));
     }
     public function renderSidebar($control)

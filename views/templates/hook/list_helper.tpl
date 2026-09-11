@@ -340,7 +340,7 @@ var text_update_position='{l s='Successful update' mod='ets_marketplace'}';
                                                         {if $name=='ets_registration'}
                                                             <a class="btn btn-default" href="{$row.child_view_url|escape:'html':'UTF-8'}"><svg width="14" height="14" viewBox="0 0 1792 1792" xmlns="http://www.w3.org/2000/svg"><path d="M1088 800v64q0 13-9.5 22.5t-22.5 9.5h-224v224q0 13-9.5 22.5t-22.5 9.5h-64q-13 0-22.5-9.5t-9.5-22.5v-224h-224q-13 0-22.5-9.5t-9.5-22.5v-64q0-13 9.5-22.5t22.5-9.5h224v-224q0-13 9.5-22.5t22.5-9.5h64q13 0 22.5 9.5t9.5 22.5v224h224q13 0 22.5 9.5t9.5 22.5zm128 32q0-185-131.5-316.5t-316.5-131.5-316.5 131.5-131.5 316.5 131.5 316.5 316.5 131.5 316.5-131.5 131.5-316.5zm512 832q0 53-37.5 90.5t-90.5 37.5q-54 0-90-38l-343-342q-179 124-399 124-143 0-273.5-55.5t-225-150-150-225-55.5-273.5 55.5-273.5 150-225 225-150 273.5-55.5 273.5 55.5 225 150 150 225 55.5 273.5q0 220-124 399l343 343q37 37 37 90z"/></svg> {l s='View' mod='ets_marketplace'}</a>
                                                         {/if}
-                                                        {if $actions|count >=2 && (!isset($row.action_edit) || $row.action_edit || in_array('action',$actions) || (isset($row.action_delete) &&$row.action_delete) )}
+                                                        {if $name!='ets_registration' && $actions|count >=2 && (!isset($row.action_edit) || $row.action_edit || in_array('action',$actions) || (isset($row.action_delete) &&$row.action_delete) )}
                                                             <button data-toggle="dropdown" class="btn btn-default dropdown-toggle">
                                                                 <svg width="14" height="14" viewBox="0 0 1792 1792" xmlns="http://www.w3.org/2000/svg"><path d="M1408 704q0 26-19 45l-448 448q-19 19-45 19t-45-19l-448-448q-19-19-19-45t19-45 45-19h896q26 0 45 19t19 45z"/></svg>&nbsp;
                                         					</button>
@@ -359,63 +359,6 @@ var text_update_position='{l s='Successful update' mod='ets_marketplace'}';
                                                                     {if $row.status==0}
                                                                         <a onclick="return confirm('{l s='Do you want to cancel this billing?' mod='ets_marketplace' js=1}');" class="btn btn-default" href="{$currentIndex|escape:'html':'UTF-8'}&cancel{$name|escape:'html':'UTF-8'}=1&{$identifier|escape:'html':'UTF-8'}={$row.$identifier|escape:'html':'UTF-8'}"><svg width="14" height="14" viewBox="0 0 1792 1792" xmlns="http://www.w3.org/2000/svg"><path d="M1490 1322q0 40-28 68l-136 136q-28 28-68 28t-68-28l-294-294-294 294q-28 28-68 28t-68-28l-136-136q-28-28-28-68t28-68l294-294-294-294q-28-28-28-68t28-68l136-136q28-28 68-28t68 28l294 294 294-294q28-28 68-28t68 28l136 136q28 28 28 68t-28 68l-294 294 294 294q28 28 28 68z"/></svg> {l s='Cancel' mod='ets_marketplace'}</a>
                                                                     {/if}
-                                                                {/if}
-                                                                {if $name=='ets_registration'}
-                                                                    <li>
-                                                                        <span class="btn btn-default action_approve_registration" data-id="{$row.$identifier|intval}" {if $row.status==1} style="display:none;"{/if}>
-                                                                            <svg width="14" height="14" viewBox="0 0 1792 1792" xmlns="http://www.w3.org/2000/svg"><path d="M1671 566q0 40-28 68l-724 724-136 136q-28 28-68 28t-68-28l-136-136-362-362q-28-28-28-68t28-68l136-136q28-28 68-28t68 28l294 295 656-657q28-28 68-28t68 28l136 136q28 28 28 68z"/></svg> {l s='Approve' mod='ets_marketplace'}
-                                                                        </span>
-                                                                        <div class="approve_registration_form" style="display:none">
-                                                                            <div class="ets_mp_close_popup" title="Close">{l s='Close' mod='ets_marketplace'}</div>
-                                                                            <div class="form-group">
-                                                                                <label class="control-label col-lg-3">{l s='Status' mod='ets_marketplace'}</label>
-                                                                                <div class="col-lg-9">
-                                                                                    <span class="ets_mp_status approved">{l s='Approve' mod='ets_marketplace'}</span>
-                                                                                </div>
-                                                                            </div>
-                                                                            <input name="active_registration" value="1" type="hidden" />
-                                                                            <input name="id_registration" value="{$row.$identifier|intval}" type="hidden" />
-                                                                            <div class="panel_footer form-group">
-                                                                                <div class="control-label col-lg-3"></div>
-                                                                                <div class="col-lg-9">
-                                                                                    <button type="submit" value="1" name="saveStatusRegistration" class="btn btn-default saveStatusRegistration">
-                                                                                        <svg width="14" height="14" viewBox="0 0 1792 1792" xmlns="http://www.w3.org/2000/svg"><path d="M512 1536h768v-384h-768v384zm896 0h128v-896q0-14-10-38.5t-20-34.5l-281-281q-10-10-34-20t-39-10v416q0 40-28 68t-68 28h-576q-40 0-68-28t-28-68v-416h-128v1280h128v-416q0-40 28-68t68-28h832q40 0 68 28t28 68v416zm-384-928v-320q0-13-9.5-22.5t-22.5-9.5h-192q-13 0-22.5 9.5t-9.5 22.5v320q0 13 9.5 22.5t22.5 9.5h192q13 0 22.5-9.5t9.5-22.5zm640 32v928q0 40-28 68t-68 28h-1344q-40 0-68-28t-28-68v-1344q0-40 28-68t68-28h928q40 0 88 20t76 48l280 280q28 28 48 76t20 88z"/></svg> {l s='Save' mod='ets_marketplace'}
-                                                                                    </button>
-                                                                                </div>
-                                                                            </div>           
-                                                                        </div>
-                                                                    </li>
-                                                                    <li>
-                                                                        <span class="btn btn-default approve_registration action_decline_registration" data-id="{$row.$identifier|intval}" {if ($row.status==1 && $row.has_seller) || $row.status==0} style="display:none;"{/if}>
-                                                                            <svg width="14" height="14" viewBox="0 0 1792 1792" xmlns="http://www.w3.org/2000/svg"><path d="M1490 1322q0 40-28 68l-136 136q-28 28-68 28t-68-28l-294-294-294 294q-28 28-68 28t-68-28l-136-136q-28-28-28-68t28-68l294-294-294-294q-28-28-28-68t28-68l136-136q28-28 68-28t68 28l294 294 294-294q28-28 68-28t68 28l136 136q28 28 28 68t-28 68l-294 294 294 294q28 28 28 68z"/></svg> {l s='Decline' mod='ets_marketplace'}
-                                                                        </span>
-                                                                        <div class="approve_registration_form" style="display:none">
-                                                                            <div class="ets_mp_close_popup" title="Close">{l s='Close' mod='ets_marketplace'}</div>
-                                                                            <div class="form-group">
-                                                                                <label class="control-label col-lg-3">{l s='Status' mod='ets_marketplace'}</label>
-                                                                                <div class="col-lg-9">
-                                                                                    <span class="ets_mp_status declined">{l s='Decline' mod='ets_marketplace'}</span>
-                                                                                </div>
-                                                                            </div>
-                                                                            <div class="form-group">
-                                                                                <label class="control-label col-lg-3">{l s='Reason' mod='ets_marketplace'}</label>
-                                                                                <div class="col-lg-9">
-                                                                                    <textarea name="reason"></textarea>
-                                                                                </div>
-                                                                            </div>
-                                                                            <input name="active_registration" value="0" type="hidden" />
-                                                                            <input name="id_registration" value="{$row.$identifier|intval}" type="hidden" />
-                                                                            <div class="panel_footer form-group">
-                                                                                <div class="control-label col-lg-3"></div>
-                                                                                <div class="col-lg-9">
-                                                                                    <button type="submit" value="1" name="saveStatusRegistration" class="btn btn-default saveStatusRegistration">
-                                                                                        <svg width="14" height="14" viewBox="0 0 1792 1792" xmlns="http://www.w3.org/2000/svg"><path d="M512 1536h768v-384h-768v384zm896 0h128v-896q0-14-10-38.5t-20-34.5l-281-281q-10-10-34-20t-39-10v416q0 40-28 68t-68 28h-576q-40 0-68-28t-28-68v-416h-128v1280h128v-416q0-40 28-68t68-28h832q40 0 68 28t28 68v416zm-384-928v-320q0-13-9.5-22.5t-22.5-9.5h-192q-13 0-22.5 9.5t-9.5 22.5v320q0 13 9.5 22.5t22.5 9.5h192q13 0 22.5-9.5t9.5-22.5zm640 32v928q0 40-28 68t-68 28h-1344q-40 0-68-28t-28-68v-1344q0-40 28-68t68-28h928q40 0 88 20t76 48l280 280q28 28 48 76t20 88z"/></svg> {l s='Save' mod='ets_marketplace'}
-                                                                                    </button>
-                                                                                </div>
-                                                                            </div>           
-                                                                        </div>
-                                                                    </li>
-                                                                    <li><a onclick="return confirm('{l s='Do you want to delete this item?' mod='ets_marketplace'}');" href="{$currentIndex|escape:'html':'UTF-8'}&{$identifier|escape:'html':'UTF-8'}={$row.$identifier|escape:'html':'UTF-8'}&del=yes"><svg width="14" height="14" viewBox="0 0 1792 1792" xmlns="http://www.w3.org/2000/svg"><path d="M704 1376v-704q0-14-9-23t-23-9h-64q-14 0-23 9t-9 23v704q0 14 9 23t23 9h64q14 0 23-9t9-23zm256 0v-704q0-14-9-23t-23-9h-64q-14 0-23 9t-9 23v704q0 14 9 23t23 9h64q14 0 23-9t9-23zm256 0v-704q0-14-9-23t-23-9h-64q-14 0-23 9t-9 23v704q0 14 9 23t23 9h64q14 0 23-9t9-23zm-544-992h448l-48-117q-7-9-17-11h-317q-10 2-17 11zm928 32v64q0 14-9 23t-23 9h-96v948q0 83-47 143.5t-113 60.5h-832q-66 0-113-58.5t-47-141.5v-952h-96q-14 0-23-9t-9-23v-64q0-14 9-23t23-9h309l70-167q15-37 54-63t79-26h320q40 0 79 26t54 63l70 167h309q14 0 23 9t9 23z"/></svg> {l s='Delete' mod='ets_marketplace'}</a></li>
                                                                 {/if}
                                                                 {if $name=='ets_seller'}
                                                                     <li {if $row.status_val==1}style="display:none;"{/if}>
